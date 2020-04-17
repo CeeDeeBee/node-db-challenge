@@ -17,21 +17,13 @@ function getProjectByID(id) {
 	return db("projects")
 		.where({ id })
 		.then(([project]) => {
-			project = {
-				...project,
-				completed: intToBool(project.completed),
-			};
 			return getProjectTasks(id).then((tasks) => {
-				tasks = tasks.map((task) => ({
-					...task,
-					completed: intToBool(task.completed),
-				}));
 				return getProjectResources(id).then((resources) => {
-					resources = resources.map((resource) => ({
-						...resource,
-						completed: intToBool(resource.completed),
-					}));
-					return { ...project, tasks, resources };
+					return {
+						...convertCompleted(project),
+						tasks: tasks.map((task) => convertCompleted(task)),
+						resources: resources.map((resource) => convertCompleted(resource)),
+					};
 				});
 			});
 		});
@@ -62,6 +54,9 @@ function addResource(project_id, resource_id) {
 		.then(() => getProjectResources(project_id));
 }
 
-function intToBool(int) {
-	return int ? true : false;
+function convertCompleted(obj) {
+	return {
+		...obj,
+		completed: obj.completed ? true : false,
+	};
 }
